@@ -243,12 +243,13 @@ export class EditorGroupTracker implements vscode.Disposable {
     }
 
     /**
-     * Close all tracked documents and return focus to original.
+     * Close all tracked documents and optionally return focus to original.
      * Called programmatically (e.g., from maybeUpdateDecryptedView) - NOT from user tab close.
      * We clear trackedDocs BEFORE closing tabs so handleTabsChanged doesn't
      * react and set recentlyClosedPreviewSource (which would block subsequent operations).
+     * @param options.skipFocusReturn - If true, don't return focus to original (caller manages focus)
      */
-    async closeAllTrackedDocuments(): Promise<void> {
+    async closeAllTrackedDocuments(options?: { skipFocusReturn?: boolean }): Promise<void> {
         logger.debug('[EditorGroupTracker] closeAllTrackedDocuments() called, trackedDocs.size =', this.trackedDocs.size);
         if (this.trackedDocs.size === 0) {
             return;
@@ -268,7 +269,7 @@ export class EditorGroupTracker implements vscode.Disposable {
             await this.closeTab(uri);
         }
 
-        if (firstTracked) {
+        if (firstTracked && !options?.skipFocusReturn) {
             logger.debug('[EditorGroupTracker] Returning focus to original:', firstTracked.originalActiveUri);
             await this.returnFocusToOriginal(firstTracked);
         }
